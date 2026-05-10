@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum InstanceStatus {
+  ONLINE
+  OFFLINE
+  ERROR
+}
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Instance {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  description String?
+  apiUrl      String
+  apiKey      String?
+  status      InstanceStatus @default(OFFLINE)
+  version     String?
+  lastChecked DateTime?
+  tags        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  tasks       Task[]
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
+  prompt      String
+  result      String?
+  instanceId  String       @map("instance_id")
+  instance    Instance     @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  cronExpr    String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([instanceId])
+  @@index([status])
+}

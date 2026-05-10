@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  hermesbuddy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hermesbuddy
+    ports:
+      - "3000:3000"
+    volumes:
+      - hermesbuddy-data:/app/data
+    environment:
+      - DATABASE_URL=file:/app/data/hermesbuddy.db
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  hermesbuddy-data:
+    driver: local
